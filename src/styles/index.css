@@ -10,3 +10,38 @@
     import 'relative/path/to/stylesheet.scss';
 
 */
+
+body{
+    margin-top: 30px;
+}
+ul li{
+    list-style: none;
+    padding: 5px;
+    margin-right: 200px;
+    font-weight: 100;
+}
+h1{
+    font-size: 100px;
+    font-weight: 100;
+    color: #FFDAB9;
+}
+input{
+    border: none;
+    width: 180px;
+    font-weight: 100;
+}
+.tasks{
+    margin-right: 380px;
+    font-weight: 100;
+}
+.fa-solid{
+    color: red;
+    position: relative;
+    left: 30px;
+}
+.todo-item .hide-icon {
+    visibility: hidden;
+}
+.todo-item:hover .hide-icon {
+    visibility: visible;
+}
