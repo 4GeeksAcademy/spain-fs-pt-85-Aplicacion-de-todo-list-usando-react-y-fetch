@@ -34,7 +34,7 @@ const Home = () => {
                 "Content-Type": "application/json"
             },
             body: JSON.stringify([
-                { label: "Sample Task", is_done: false } // Lista inicial de tareas
+                { label: "Sample Task", is_done: false } 
             ])
         });
 
