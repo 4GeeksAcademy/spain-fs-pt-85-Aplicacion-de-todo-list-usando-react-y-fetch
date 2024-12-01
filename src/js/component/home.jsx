@@ -3,12 +3,38 @@ import React, { useState, useEffect } from "react";
 const Home = () => {
   const [inputValue, setInputValue] = useState("");
   const [todos, setTodos] = useState([]);
-  const [userCreated, setUserCreated] = useState(false); 
   const userName = "sergi"; 
 
+  
+  const verificarUsuario = async () => {
+    try {
+      const response = await fetch(`https://playground.4geeks.com/todo/users/${userName}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (response.ok) {
+        console.log("Usuario existente verificado.");
+        return true; 
+      } else if (response.status === 404) {
+        console.log("Usuario no encontrado.");
+        return false; 
+      } else {
+        console.error("Error al verificar usuario:", response.statusText);
+        return false;
+      }
+    } catch (error) {
+      console.error("Error al verificar usuario:", error);
+      return false;
+    }
+  };
+
+  
   const crearUsuario = async () => {
     try {
-      let response = await fetch("https://playground.4geeks.com/todo/users/sergi", {
+      const response = await fetch(`https://playground.4geeks.com/todo/users/${userName}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -17,23 +43,22 @@ const Home = () => {
 
       if (response.ok) {
         console.log("Usuario creado correctamente.");
-        setUserCreated(true); 
+        return true;
       } else {
-        console.log("El usuario ya existe o hubo un problema al crear.");
-        setUserCreated(true); 
+        console.error("Error al crear usuario:", response.statusText);
+        return false;
       }
-      return response.ok;
     } catch (error) {
-      console.log("Error al crear el usuario:", error);
+      console.error("Error al crear usuario:", error);
       return false;
     }
   };
 
-  // Cargar tareas solo si el usuario ha sido creado
+  
   const cargarTareas = async () => {
     try {
-      const response = await fetch(`https://playground.4geeks.com/todo/users/${userName}/todos`, {
-        method: "GET", 
+      const response = await fetch(`https://playground.4geeks.com/todo/users/${userName}`, {
+        method: "GET",
         headers: {
           "Content-Type": "application/json",
         },
@@ -41,59 +66,62 @@ const Home = () => {
 
       if (response.ok) {
         const data = await response.json();
-        setTodos(data);
+        setTodos(data); 
         console.log("Tareas cargadas:", data);
       } else {
-        console.error("Error al cargar las tareas:", response.statusText);
+        console.error("Error al cargar tareas:", response.statusText);
       }
     } catch (error) {
-      console.error("Error al cargar las tareas:", error);
+      console.error("Error al cargar tareas:", error);
     }
   };
 
+  
   useEffect(() => {
-    const loadData = async () => {
-      try {
+    const gestionarUsuarioYTareas = async () => {
+      const usuarioExiste = await verificarUsuario();
+
+      if (usuarioExiste) {
+        
+        cargarTareas();
+      } else {
         const usuarioCreado = await crearUsuario();
         if (usuarioCreado) {
-          cargarTareas(); 
+          cargarTareas();
         }
-      } catch (error) {
-        console.error("Error en useEffect:", error);
       }
     };
 
-    loadData(); 
-  }, []); 
+    gestionarUsuarioYTareas();
+  }, []);
 
-  
   const agregarTarea = async (e) => {
     if (e.key === "Enter" && inputValue.trim() !== "") {
       const nuevaTarea = { label: inputValue, is_done: false };
-
+  
       try {
-        const response = await fetch("https://playground.4geeks.com/todo/todos/sergi", {
+        const response = await fetch(`https://playground.4geeks.com/todo/todos/${userName}`, {
           method: "POST",
           body: JSON.stringify(nuevaTarea),
           headers: {
             "Content-Type": "application/json",
           },
         });
-
+  
         if (response.ok) {
           const tareaCreada = await response.json();
-          setTodos([...todos, tareaCreada]); 
+          setTodos((prevTodos) => Array.isArray(prevTodos) ? [...prevTodos, tareaCreada] : [tareaCreada]); 
           setInputValue(""); 
           console.log(`Tarea añadida: ${tareaCreada.label}`);
         } else {
-          console.error("Error al añadir la tarea");
+          console.error("Error al añadir tarea:", response.statusText);
         }
       } catch (error) {
-        console.log("Error al agregar la tarea:", error);
+        console.error("Error al añadir tarea:", error);
       }
     }
   };
-
+  
   const borrarTarea = async (todo_id) => {
     try {
       const response = await fetch(`https://playground.4geeks.com/todo/todos/${todo_id}`, {
@@ -101,13 +129,13 @@ const Home = () => {
       });
 
       if (response.ok) {
-        console.log(`Tarea con ID ${todo_id} borrada`);
+        console.log(`Tarea con ID ${todo_id} borrada.`);
         setTodos(todos.filter((tarea) => tarea.id !== todo_id)); 
       } else {
-        console.error("Error al borrar la tarea");
+        console.error("Error al borrar tarea:", response.statusText);
       }
     } catch (error) {
-      console.log("Error al intentar borrar la tarea:", error);
+      console.error("Error al borrar tarea:", error);
     }
   };
 
@@ -124,10 +152,10 @@ const Home = () => {
             placeholder="What needs to be done?"
           />
         </li>
-        {todos.length === 0 ? (
+        {Array.isArray(todos) && todos.length === 0 ? ( 
           <li>No tasks, add tasks</li>
         ) : (
-          todos.map((item) => (
+          Array.isArray(todos) && todos.map((item) => ( 
             <li className="todo-item" key={item.id}>
               {item.label}{" "}
               <i
@@ -138,9 +166,9 @@ const Home = () => {
           ))
         )}
       </ul>
-      <div className="tasks">{todos.length + " items left"}</div>
+      <div className="tasks">{Array.isArray(todos) ? todos.length : 0} items left</div> 
     </div>
   );
-};
+}
 
 export default Home;
