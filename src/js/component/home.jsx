@@ -66,7 +66,7 @@ const Home = () => {
 
       if (response.ok) {
         const data = await response.json();
-        setTodos(data); 
+        setTodos(data.todos);  
         console.log("Tareas cargadas:", data);
       } else {
         console.error("Error al cargar tareas:", response.statusText);
